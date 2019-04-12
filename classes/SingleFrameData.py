@@ -14,7 +14,7 @@ import re
 import numpy as np
 
 
-class SingleFrameData():
+class SingleFrameData(object):
     '''
     Class to read data at each timestep
     
@@ -49,25 +49,30 @@ class SingleFrameData():
         Ut,Vt = self.readFrameVelocities(time)
         
         return xt,yt,Ut,Vt
+    
+    def _readFrame_(self,time,usecols):
+        '''Function to read each frame for coordinates or velocities
+        '''
+        data_dantec = np.genfromtxt(self.fRes[time],skip_header=3,skip_footer=6,usecols=usecols)
+        
+        fxt = np.flipud(data_dantec[:,0].reshape((self.lins,self.cols)))
+        fyt = np.flipud(data_dantec[:,1].reshape((self.lins,self.cols)))
+        
+        return fxt,fyt
         
     def readFrameCoordinates(self,time):
+        usecols = (4,5)
         
-        data_dantec = np.genfromtxt(self.fRes[time],skip_header=3,skip_footer=6,usecols=(4,5))
-        
-        xt = np.flipud(data_dantec[:,0].reshape((self.lins,self.cols)))
-        yt = np.flipud(data_dantec[:,1].reshape((self.lins,self.cols)))
-        # calc max/min on x and y coordinates
-        
+        xt, yt = self._readFrame_(time,usecols)
         
         return xt,yt
 
     def readFrameVelocities(self,time):
         '''readFrameVelocities method
         '''
-        data_dantec = np.genfromtxt(self.fRes[time],skip_header=3,skip_footer=6,usecols=(8,9))
+        usecols = (8,9)
         
-        Ut = np.flipud(data_dantec[:,0].reshape((self.lins,self.cols)))
-        Vt = np.flipud(data_dantec[:,1].reshape((self.lins,self.cols)))
+        Ut, Vt = self._readFrame_(time,usecols)
         
         return Ut,Vt
     
