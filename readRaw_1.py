@@ -14,26 +14,31 @@ version:1.0 - 04/2019: Helio Villanueva
 
 from classes.ReadData import ReadData
 from glob import glob
-#import numpy as np
 
 #******************************************************************************
 #******************************************************************************
-
 
 print('\nStart readRaw_1\n')    
+
 #******************************************************************************
 ## -- Main
 #******************************************************************************
+
+## -- Path to the PIV results files and store in "files" list of names
 resPath = '../Res0-vecMask'
 files = glob(resPath + '/*')
 
 
-## -- Read PIV data. If python format already present read it instead
+## -- Instance of class with PIV results infos
 Raw = ReadData(files)
 
+## -- Read PIV data. If python format already present read it instead
 U,V = Raw.read(resPath)
 
-
+## -- Print infos about coordinates and size of Field-of-View (FOV)
 Raw.printCoordInfos()
 
-print('END readRaw_1\n')
+#******************************************************************************
+#******************************************************************************
+
+print('\nEND readRaw_1\n')

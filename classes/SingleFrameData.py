@@ -30,6 +30,16 @@ class SingleFrameData(object):
             size = re.findall(r'I=(.*) J=(.*) ',content[2])
             self.cols = int(size[0][0])
             self.lins = int(size[0][1])
+            
+        self.xcoord,self.ycoord = self.readFrameCoordinates(0)
+        self.xscale = (self.xcoord.max() - self.xcoord.min())/self.cols
+        self.yscale = (self.ycoord.max() - self.ycoord.min())/self.lins
+        self.xmin = self.xcoord.min()
+        self.xmax = self.xcoord.max()
+        self.ymin = self.xcoord.min()
+        self.ymax = self.ycoord.max()
+        self.Lx = np.abs(self.xmin) + self.xmax
+        self.Ly = np.abs(self.ymin) + self.ymax
         
     def readFrame(self,time):
         '''Method to read the coordinates and velocity fields for one 
@@ -62,22 +72,12 @@ class SingleFrameData(object):
         
         return Ut,Vt
     
-    def printCoordInfos(self):
-        xcoord,ycoord = self.readFrameCoordinates(0)
-        xscale = (xcoord.max()-xcoord.min())/self.cols
-        yscale = (ycoord.max()-ycoord.min())/self.lins
-        xmin = xcoord.min()
-        xmax = xcoord.max()
-        ymin = xcoord.min()
-        ymax = ycoord.max()
-        dx = np.abs(xmin) + xmax
-        dy = np.abs(ymin) + ymax
-        
+    def printCoordInfos(self):        
         print('===============')
         print('Bounding Box\n===============')
-        print('X coordinates: (' + str(xmin) + ', ' + str(xmax) + ') dx: ' + str(dx))
-        print('X Scale: ' + str(xscale) + ' mm/pixel\n')
-        print('Y coordinates: (' + str(ymin) + ', ' + str(ymax) + ') dy: ' + str(dy))
-        print('Y Scale: ' +str(yscale) + ' mm/pixel\n')
+        print('X coordinates: (' + str(self.xmin) + ', ' + str(self.xmax) + ') Lx: ' + str(self.Lx))
+        print('X Scale: ' + str(self.xscale) + ' mm/pixel\n')
+        print('Y coordinates: (' + str(self.ymin) + ', ' + str(self.ymax) + ') Ly: ' + str(self.Ly))
+        print('Y Scale: ' + str(self.yscale) + ' mm/pixel')
         
         return 0
