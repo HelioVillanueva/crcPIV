@@ -28,8 +28,8 @@ print('\nStart mean_2\n')
 Umean = np.mean(raw.U,axis=2, keepdims=True)
 Vmean = np.mean(raw.V,axis=2, keepdims=True)
 
-Uvtk = np.ascontiguousarray(np.rot90(raw.U,k=1, axes=(1,0)))
-Vvtk = np.ascontiguousarray(np.rot90(raw.V,k=1, axes=(1,0)))
+Uvtk = np.ascontiguousarray(np.rot90(Umean,k=1, axes=(1,0)))
+Vvtk = np.ascontiguousarray(np.rot90(Vmean,k=1, axes=(1,0)))
 
 ## -- Save result in VTK format
 WVTK(raw.files,raw.resPath,Uvtk,Vvtk)
