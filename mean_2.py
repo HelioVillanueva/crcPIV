@@ -12,7 +12,9 @@ version:0.0 - 02/2019: Helio Villanueva
 version:1.0 - 04/2019: Helio Villanueva
 """
 
-import readRaw_1
+import readRaw_1 as raw
+from classes.WriteVTK import WVTK
+import numpy as np
 
 #******************************************************************************
 #******************************************************************************
@@ -23,9 +25,14 @@ print('\nStart mean_2\n')
 ## -- Main
 #******************************************************************************
 
-print('self xcoord')
-print(readRaw_1.Raw.xscale)
+Umean = np.mean(raw.U,axis=2, keepdims=True)
+Vmean = np.mean(raw.V,axis=2, keepdims=True)
 
+Uvtk = np.ascontiguousarray(np.rot90(raw.U,k=1, axes=(1,0)))
+Vvtk = np.ascontiguousarray(np.rot90(raw.V,k=1, axes=(1,0)))
+
+## -- Save result in VTK format
+WVTK(raw.files,raw.resPath,Uvtk,Vvtk)
 
 #******************************************************************************
 #******************************************************************************

@@ -14,8 +14,7 @@ import re
 import numpy as np
 
 
-
-class SingleFrameData(object):
+class SingleFrameData():
     '''
     Class to read data at each timestep
     
@@ -32,8 +31,8 @@ class SingleFrameData(object):
             self.lins = int(size[0][1])
             
         self.xcoord,self.ycoord = self.readFrameCoordinates(0)
-        self.xscale = (self.xcoord.max() - self.xcoord.min())/self.cols
-        self.yscale = (self.ycoord.max() - self.ycoord.min())/self.lins
+        self.xscale = (self.xcoord.max() - self.xcoord.min())*0.001/self.cols
+        self.yscale = (self.ycoord.max() - self.ycoord.min())*0.001/self.lins
         self.xmin = self.xcoord.min()
         self.xmax = self.xcoord.max()
         self.ymin = self.xcoord.min()
@@ -76,8 +75,8 @@ class SingleFrameData(object):
         print('===============')
         print('Bounding Box\n===============')
         print('X coordinates: (' + str(self.xmin) + ', ' + str(self.xmax) + ') Lx: ' + str(self.Lx))
-        print('X Scale: ' + str(self.xscale) + ' mm/pixel\n')
+        print('X Scale: ' + str(self.xscale) + ' m/pixel\n')
         print('Y coordinates: (' + str(self.ymin) + ', ' + str(self.ymax) + ') Ly: ' + str(self.Ly))
-        print('Y Scale: ' + str(self.yscale) + ' mm/pixel')
+        print('Y Scale: ' + str(self.yscale) + ' m/pixel')
         
         return 0
