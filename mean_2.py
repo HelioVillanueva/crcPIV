@@ -31,6 +31,7 @@ Vmean = np.mean(raw.V,axis=2, keepdims=True)
 Uvtk = np.ascontiguousarray(np.rot90(Umean,k=1, axes=(1,0)))
 Vvtk = np.ascontiguousarray(np.rot90(Vmean,k=1, axes=(1,0)))
 
+
 ## -- Save result in VTK format
 VelMeanVTKres = WVTK(raw.files)
 VelMeanVTKres.save2DcellVecVTK(raw.resPath,Uvtk,Vvtk)

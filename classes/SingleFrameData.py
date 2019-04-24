@@ -26,19 +26,19 @@ class SingleFrameData(object):
         self.fRes.sort()
         with open(fRes[0]) as f:
             content = f.readlines()
+            # - get size of data as n pixels (lins,cols)
             size = re.findall(r'I=(.*) J=(.*) ',content[2])
             self.cols = int(size[0][0])
             self.lins = int(size[0][1])
+            # - get index of variables as coordinates and velocities
+            variables = content[1].split('" "')
+            self.xcoordidx = variables.index("x (mm)[mm]")
+            self.ycoordidx = variables.index("y (mm)[mm]")
+            self.Uxidx = variables.index("U[m/s]")
+            self.Uyidx = variables.index("V[m/s]")
             
-        self.xcoord,self.ycoord = self.readFrameCoordinates(0)
-        self.xscale = (self.xcoord.max() - self.xcoord.min())*0.001/self.cols
-        self.yscale = (self.ycoord.max() - self.ycoord.min())*0.001/self.lins
-        self.xmin = self.xcoord.min()
-        self.xmax = self.xcoord.max()
-        self.ymin = self.xcoord.min()
-        self.ymax = self.ycoord.max()
-        self.Lx = np.abs(self.xmin) + self.xmax
-        self.Ly = np.abs(self.ymin) + self.ymax
+        self.calcCoordProps()
+        
         
     def readFrame(self,time):
         '''Method to read the coordinates and velocity fields for one 
@@ -61,7 +61,9 @@ class SingleFrameData(object):
         return fxt,fyt
         
     def readFrameCoordinates(self,time):
-        usecols = (4,5)
+        '''readFrameCoordinates method
+        '''
+        usecols = (self.xcoordidx,self.ycoordidx)
         
         xt, yt = self._readFrame_(time,usecols)
         
@@ -70,11 +72,25 @@ class SingleFrameData(object):
     def readFrameVelocities(self,time):
         '''readFrameVelocities method
         '''
-        usecols = (8,9)
+        usecols = (self.Uxidx,self.Uyidx)
         
         Ut, Vt = self._readFrame_(time,usecols)
         
         return Ut,Vt
+    
+    def calcCoordProps(self):
+        '''Function to calculate properties of the coordinates as object props
+        '''
+        self.xcoord,self.ycoord = self.readFrameCoordinates(0)
+        self.xscale = (self.xcoord.max() - self.xcoord.min())*0.001/self.cols
+        self.yscale = (self.ycoord.max() - self.ycoord.min())*0.001/self.lins
+        self.xmin = self.xcoord.min()
+        self.xmax = self.xcoord.max()
+        self.ymin = self.xcoord.min()
+        self.ymax = self.ycoord.max()
+        self.Lx = np.abs(self.xmin) + self.xmax
+        self.Ly = np.abs(self.ymin) + self.ymax
+        return 0
     
     def printCoordInfos(self):        
         print('===============')
