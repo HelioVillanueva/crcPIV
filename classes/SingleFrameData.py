@@ -31,11 +31,11 @@ class SingleFrameData(object):
             self.cols = int(size[0][0])
             self.lins = int(size[0][1])
             # - get index of variables as coordinates and velocities
-            variables = content[1].split('" "')
-            self.xcoordidx = variables.index("x (mm)[mm]")
-            self.ycoordidx = variables.index("y (mm)[mm]")
-            self.Uxidx = variables.index("U[m/s]")
-            self.Uyidx = variables.index("V[m/s]")
+            self.variables = content[1].split('" "')
+            self.xcoordidx = self.variables.index("x (mm)[mm]")
+            self.ycoordidx = self.variables.index("y (mm)[mm]")
+            self.Uxidx = self.variables.index("U[m/s]")
+            self.Uyidx = self.variables.index("V[m/s]")
             
         self.calcCoordProps()
         
@@ -77,6 +77,20 @@ class SingleFrameData(object):
         Ut, Vt = self._readFrame_(time,usecols)
         
         return Ut,Vt
+    
+    def readFrameVariable(self,time,varXname,varYname):
+        '''readFrameVariable method
+        Reads a specified variable from the .dat file for a specific timestep
+        ex: varXname = "Rms U[pix]"
+        '''
+        varxidx = self.variables.index(varXname)
+        varyidx = self.variables.index(varYname)
+        
+        usecols = (varxidx,varyidx)
+        
+        varXt, varYt = self._readFrame_(time,usecols)
+        
+        return varXt,varYt
     
     def calcCoordProps(self):
         '''Function to calculate properties of the coordinates as object props

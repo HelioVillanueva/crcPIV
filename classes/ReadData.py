@@ -10,7 +10,7 @@ version:0.0 - 02/2019: Helio Villanueva
 version:1.0 - 04/2019: Helio Villanueva
 """
 
-from classes.SingleFrameData import SingleFrameData, np
+from classes.SingleFrameData import SingleFrameData, np, re
 from progressbar import ProgressBar
 
 class ReadData(SingleFrameData):
@@ -69,3 +69,65 @@ class ReadData(SingleFrameData):
         pbar.finish()
         
         return U,V
+    
+    def readVar(self,resPath,varXname,varYname):
+        '''Method to read the raw data if there is no "var".npy file
+        Return varX,varY
+        '''
+        varXnametratado = re.sub('\[.*\]','',varXname).replace(" ","")
+        varYnametratado = re.sub('\[.*\]','',varYname).replace(" ","")
+        
+        try:
+            varX = np.load(resPath + '/' + varXnametratado + '.npy')
+            print('Reading PIV data of ' + varXname + ' in python format\n')
+            varY = np.load(resPath + '/' + varYnametratado + '.npy')
+            
+        except:
+            print('Reading PIV raw files for ' + varXname)
+        
+            #varX,varY = self.readVarTimeSeries(varXname,varYname)
+            varX,varY = self.readFrameVariable(0,varXname,varYname)
+            
+            print('Saving PIV data in python format')
+            np.save(resPath + '/' + varXnametratado,varX)
+            np.save(resPath + '/' + varYnametratado,varY)
+            
+        return varX,varY
+        
+    def readVarTimeSeries(self,resPath,varXname,varYname):
+        
+        varXnametratado = re.sub('\[.*\]','',varXname).replace(" ","")
+        varYnametratado = re.sub('\[.*\]','',varYname).replace(" ","")
+        
+        try:
+            varX = np.load(resPath + '/' + varXnametratado + '.npy')
+            print('Reading PIV data of ' + varXname + ' in python format\n')
+            varY = np.load(resPath + '/' + varYnametratado + '.npy')
+            
+        except:
+            print('Generating variable matrices')
+            varX = np.zeros((self.lins, self.cols, self.Ttot))
+            varY = np.zeros((self.lins, self.cols, self.Ttot))
+            
+            print('Reading PIV Frames - Variable components')
+            pbar = ProgressBar()
+            pbar.start()
+            
+            ## -- Loop over all files/times
+            for time,name in enumerate(self.fRes):
+                if time==0:
+                    perc = 0.
+                else:
+                    perc = time/float(self.Ttot)*100.
+                    
+                varX[:,:,time],varY[:,:,time] = self.readFrameVariable(time,varXname,varYname)
+                
+                pbar.update(perc)
+                
+            pbar.finish()
+            
+            print('Saving PIV data in python format')
+            np.save(resPath + '/' + varXnametratado,varX)
+            np.save(resPath + '/' + varYnametratado,varY)
+        
+        return varX,varY

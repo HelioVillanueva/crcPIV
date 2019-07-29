@@ -14,7 +14,6 @@ version:1.0 - 04/2019: Helio Villanueva
 
 import readRaw_1 as raw
 from classes.WriteVTK import WVTK
-import numpy as np
 
 #******************************************************************************
 #******************************************************************************
@@ -25,16 +24,26 @@ print('\nStart mean_2\n')
 ## -- Main
 #******************************************************************************
 
-Umean = np.mean(raw.U,axis=2, keepdims=True)
-Vmean = np.mean(raw.V,axis=2, keepdims=True)
+#Umean = np.mean(raw.U,axis=2, keepdims=True)
+#Vmean = np.mean(raw.V,axis=2, keepdims=True)
+Umean = raw.U
+Vmean = raw.V
 
-Uvtk = np.ascontiguousarray(np.rot90(Umean,k=1, axes=(1,0)))
-Vvtk = np.ascontiguousarray(np.rot90(Vmean,k=1, axes=(1,0)))
+#uu = rmsUvtk*rmsUvtk
+#vv = rmsVvtk*rmsVvtk
+#uv = rmsUvtk*rmsVvtk
+
 
 
 ## -- Save result in VTK format
 VelMeanVTKres = WVTK(raw.files)
-VelMeanVTKres.save2DcellVecVTK(raw.resPath,Uvtk,Vvtk)
+VelMeanVTKres.save2DcellVecTransientVTK(raw.resPath,'velMean',Umean,Vmean)
+
+rmsVTKres = WVTK(raw.files)
+#rmsVTKres.save2DcellVecVTK(raw.resPath,'RMS',rmsUvtk,rmsVvtk)
+
+ReTensorVTKres = WVTK(raw.files)
+#ReTensorVTKres.save2DcellReynoldsVTK(raw.resPath,'ReStress',uu,vv,uv)
 
 #******************************************************************************
 #******************************************************************************
