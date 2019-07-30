@@ -25,7 +25,7 @@ print('\nStart readRaw_1\n')
 #******************************************************************************
 
 ## -- Path to the PIV results files and store in "files" list of names
-resPath = '../Res0'
+resPath = '../Res0-outliers/ColdSym_1khz_3s'
 files = glob(resPath + '/*.dat')
 
 
