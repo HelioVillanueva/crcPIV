@@ -12,7 +12,7 @@ version:1.0 - 04/2019: Helio Villanueva
 
 import re
 import numpy as np
-
+from glob import glob
 
 class SingleFrameData(object):
     '''
@@ -21,66 +21,60 @@ class SingleFrameData(object):
     Methods are: readFrame(time), readFrameCoordinates(time),
     readFrameVelocities(time), printCoordInfos().
     '''
-    def __init__(self,fRes):
-        self.fRes = fRes
-        self.fRes.sort()
-        with open(fRes[0]) as f:
+    def __init__(self,resPath):
+        self.resPath = resPath
+        print('Reading files from: ' + str(self.resPath))
+        self.files = glob(resPath + '/*.dat')
+        self.files.sort()
+        with open(self.files[0]) as f:
             content = f.readlines()
             # - get size of data as n pixels (lins,cols)
             size = re.findall(r'I=(.*) J=(.*) ',content[2])
             self.cols = int(size[0][0])
             self.lins = int(size[0][1])
-            # - get index of variables as coordinates and velocities
+            # - get variables available from file
             self.variables = content[1].split('" "')
-            self.xcoordidx = self.variables.index("x (mm)[mm]")
-            self.ycoordidx = self.variables.index("y (mm)[mm]")
-            self.Uxidx = self.variables.index("U[m/s]")
-            self.Uyidx = self.variables.index("V[m/s]")
+            # - get single frame x and y coordinates
+            self.xcoord,self.ycoord = self.readFrameCoordinates(0)
             
         self.calcCoordProps()
         
+    def readFrameCoordinates(self,time):
+        self.xcoordidx = self.variables.index("x (mm)[mm]")
+        self.ycoordidx = self.variables.index("y (mm)[mm]")
         
-    def readFrame(self,time):
-        '''Method to read the coordinates and velocity fields for one 
-        "time"step.
-        Returns x,y,U,V arrays
-        '''
-        xt,yt = self.readFrameCoordinates(time)
-        Ut,Vt = self.readFrameVelocities(time)
+        usecols = (self.xcoordidx,self.ycoordidx)
         
-        return xt,yt,Ut,Vt
+        xt,yt = self._readFrame_(time,usecols)
+        
+        return xt, yt
     
     def _readFrame_(self,time,usecols):
         '''Function to read each frame for coordinates or velocities
         '''
-        data_dantec = np.genfromtxt(self.fRes[time],skip_header=3,skip_footer=6,usecols=usecols)
+        data_dantec = np.genfromtxt(self.files[time],skip_header=3,skip_footer=6,usecols=usecols)
         
-        fxt = np.flipud(data_dantec[:,0].reshape((self.lins,self.cols)))
-        fyt = np.flipud(data_dantec[:,1].reshape((self.lins,self.cols)))
+        fxt = np.nan_to_num(np.flipud(data_dantec[:,0].reshape((self.lins,self.cols))))
+        fyt = np.nan_to_num(np.flipud(data_dantec[:,1].reshape((self.lins,self.cols))))
         
         return fxt,fyt
-        
-    def readFrameCoordinates(self,time):
-        '''readFrameCoordinates method
+         
+    def readFrame1Variable(self,time,varXname):
+        '''readFrame1Variable method
+        Reads a specified variable from the .dat file for a specific timestep
+        ex: varXname = "Rms U[pix]"
         '''
-        usecols = (self.xcoordidx,self.ycoordidx)
+        varxidx = self.variables.index(varXname)
         
-        xt, yt = self._readFrame_(time,usecols)
+        usecols = (varxidx)
         
-        return xt,yt
-
-    def readFrameVelocities(self,time):
-        '''readFrameVelocities method
-        '''
-        usecols = (self.Uxidx,self.Uyidx)
+        varXt, varYt = self._readFrame_(time,usecols)
         
-        Ut, Vt = self._readFrame_(time,usecols)
-        
-        return Ut,Vt
+        return varXt
     
     def readFrameVariable(self,time,varXname,varYname):
         '''readFrameVariable method
-        Reads a specified variable from the .dat file for a specific timestep
+        Reads two specified variable from the .dat file for a specific timestep
         ex: varXname = "Rms U[pix]"
         '''
         varxidx = self.variables.index(varXname)
@@ -95,7 +89,6 @@ class SingleFrameData(object):
     def calcCoordProps(self):
         '''Function to calculate properties of the coordinates as object props
         '''
-        self.xcoord,self.ycoord = self.readFrameCoordinates(0)
         self.xscale = (self.xcoord.max() - self.xcoord.min())*0.001/self.cols
         self.yscale = (self.ycoord.max() - self.ycoord.min())*0.001/self.lins
         self.xmin = self.xcoord.min()
@@ -107,11 +100,40 @@ class SingleFrameData(object):
         return 0
     
     def printCoordInfos(self):        
-        print('===============')
-        print('Bounding Box\n===============')
+        #print('-------------')
+        print('Bounding Box\n-------------')
+        print('X x Y: ' + str(self.cols) + ' x ' + str(self.lins) + ' vectors')
         print('X coordinates: (' + str(self.xmin) + ', ' + str(self.xmax) + ') Lx: ' + str(self.Lx))
         print('X Scale: ' + str(self.xscale) + ' m/pixel\n')
         print('Y coordinates: (' + str(self.ymin) + ', ' + str(self.ymax) + ') Ly: ' + str(self.Ly))
         print('Y Scale: ' + str(self.yscale) + ' m/pixel')
         
         return 0
+    
+    def calcPIVres(self, LIC, LCCD):
+        '''Function to calculate PIV resolution and the smallest scale
+        Lr -> smallest length scale available
+        LIC -> dimension of the interrogation cell (eg 32 pixels)
+        LCCD -> dimension of the CCD array (eg 1028 pixels)
+        Lv -> length scale of the viewing area
+        '''
+        Lv = np.mean(self.Lx, self.Ly)
+        Lr = (LIC/LCCD)*Lv
+        return Lr
+
+
+## OLD NOT USED
+#    def readFrame(self,time):
+#        '''Method to read the coordinates and velocity fields for one 
+#        "time"step.
+#        Returns x,y,U,V arrays
+#        '''
+#        Uxidx = self.variables.index("U[m/s]")
+#        Uyidx = self.variables.index("V[m/s]")
+#        usecolsXY = (self.xcoordidx,self.ycoordidx)
+#        usecolsUV = (Uxidx,Uyidx)
+#        
+#        xt,yt = self._readFrame_(time,usecolsXY)
+#        Ut,Vt = self._readFrame_(time,usecolsUV)
+#        
+#        return xt,yt,Ut,Vt

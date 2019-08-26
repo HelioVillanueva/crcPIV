@@ -12,8 +12,6 @@ version:1.0 - 04/2019: Helio Villanueva
 
 from classes.SingleFrameData import SingleFrameData, np
 from evtk.vtk import VtkFile, VtkImageData
-#from progressbar import ProgressBar
-#import numpy as np
 
 
 class WVTK(SingleFrameData):
@@ -112,7 +110,8 @@ class WVTK(SingleFrameData):
         w.save()
         
         return 0
-    
+
+## OLD NOT USED
 #    def saveVTK(self,resPath,Uvtk,Vvtk):
 #        nx, ny, nz = self.cols, self.lins, 1
 #        origin, spacing = (0.0,0.0,0.0), (self.xscale,self.yscale,0.0001)
