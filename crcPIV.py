@@ -16,9 +16,10 @@ version:2.0 - 08/2019: Helio Villanueva
 import numpy as np
 from classes.ReadData import ReadData
 from classes.Seeding import SiO2
-from classes.WriteVTK import WVTK
 from classes.Turbulence import Turb
-#import numpy as np
+from classes.VisualPost import Plots
+from classes.WriteVTK import WVTK
+
 import matplotlib.pyplot as plt
 from scipy import signal
 
@@ -52,7 +53,16 @@ uncRaw = ReadData(uncPath)
 uncR = uncRaw.read1UncTimeSeries('UncR(m/s)[m/s]')
 
 ## -- Print infos about coordinates and size of Field-of-View (FOV)
-uncRaw.printCoordInfos()
+uncRaw.printCoordTimeInfos()
+
+#******************************************************************************
+## -- Read CFD data in csv from plotoverline paraview
+#******************************************************************************
+CFD = np.genfromtxt('/home/helio/Desktop/Res0/CFD/ParaView-RSM_BSL/y013.csv',
+                    skip_header=1,delimiter=',')
+
+CFD_x, CFD_velMag, CFD_epsilon = CFD[:,14], CFD[:,0], CFD[:,4]
+CFD_uu, CFD_vv, CFD_uv = CFD[:,7], CFD[:,8], CFD[:,10]
 
 
 #******************************************************************************
@@ -62,11 +72,12 @@ uncRaw.printCoordInfos()
 tracer = SiO2()
 #tracer.graphResponse(ymin=0.8)
 
+
 #******************************************************************************
-## -- Turbulence calculations
+## -- Turbulence calculations (velocity mean and magnitude)
 #******************************************************************************
 
-#turb = Turb(raw.files,raw.U,raw.V)
+turb = Turb(velPath,u,v)
 
 
 #FFTu = np.fft.rfft(turb.u[90,30,:])
@@ -82,7 +93,7 @@ tracer = SiO2()
 
 #FFTufilt = np.fft.rfft(ufilt)
 
-#turb2 = Turb(raw.files,ufilt,vfilt)
+#turb2 = Turb(velPath,ufilt,vfilt)
 
 
 #gradUx, gradVx, gradUy, gradVy = turb.calcVelGrad()
@@ -94,34 +105,44 @@ tracer = SiO2()
 
 #K = turb.calcK2DPIV()
 
-#velVTKres = WVTK(raw.files)
+#velVTKres = WVTK(velPath)
 #velVTKres.save2DcellReynoldsVTK(raw.resPath,'turb',epsilongrad,epsilonsmagorinsky,K)
 
+
+#******************************************************************************
+## -- Uncertainty calculations
+#******************************************************************************
+
+varMag = turb.varU**2 + turb.varV**2
+uncUMeanSq = np.mean(uncR**2,axis=2, keepdims=True)
+uncSigma = varMag + uncUMeanSq
+uncMeanVel = np.sqrt(uncSigma/velRaw.Ttot)
+uncRuu = turb.uu*np.sqrt(2/velRaw.Ttot)
 
 #******************************************************************************
 ## -- Save result in VTK format
 #******************************************************************************
 
 # - instantaneous
-#velVTKres = WVTK(raw.files)
+#velVTKres = WVTK(velPath)
 #velVTKres.save2DcellVecTransientVTK(raw.resPath,'U',raw.U,raw.V)
 
 # - mean
-#VelMeanVTKres = WVTK(raw.files)
+#VelMeanVTKres = WVTK(velPath)
 #VelMeanVTKres.save2DcellVecVTK(raw.resPath,'<U>',turb.U,turb.V)
 
 # - rms
-#rmsVTKres = WVTK(raw.files)
+#rmsVTKres = WVTK(velPath)
 #rmsVTKres.save2DcellVecVTK(raw.resPath,'RMS',rmsUvtk,rmsVvtk)
 
-#ReTensorVTKres = WVTK(raw.files)
+#ReTensorVTKres = WVTK(velPath)
 #ReTensorVTKres.save2DcellReynoldsVTK(raw.resPath,'ReStress',turb.uu,turb.vv,turb.uv)
 
-#ReTensorVTKres2 = WVTK(raw.files)
+#ReTensorVTKres2 = WVTK(velPath)
 #ReTensorVTKres2.save2DcellReynoldsVTK(raw.resPath,'ReStressFilt',turb2.uu,turb2.vv,turb2.uv)
 
 # - uncertainty
-#uncVTKres = WVTK(raw.files)
+#uncVTKres = WVTK(velPath)
 #uncVTKres.save2DcellVecTransientVTK(raw.resPath,'uncR',raw.uncR,raw.uncRpix)
 
 
@@ -129,24 +150,37 @@ tracer = SiO2()
 ## -- Plot 2D line of variable
 #******************************************************************************
 
+plts = Plots(velPath)
+plts.interpolation='bicubic'
+plts.singleFramePlot(uncMeanVel/turb.magVel,r'$\overline{U}$ [m/s]',t=0, grid='on')
 
+hline = plts.gethline(uncMeanVel[:,:,0], 20)
+#vline = plts.getvline(uncMeanVel[:,:,0], 0)
 
-extent = [velRaw.xmin,velRaw.xmax,velRaw.ymin,velRaw.ymax]
-plt.rc('text', usetex=True)
-plt.rc('font', family='serif')
-ax = plt.gca()
-#plt.figure(figsize=(5.5,6),dpi=150)
-im = ax.imshow(v[:,:,0], cmap='jet', interpolation='bicubic',extent=extent)
-plt.xlabel('Radius [mm]', fontsize=16)
-plt.ylabel(r'y [mm]', fontsize=16)
-#plt.xticks(np.arange(velRaw.cols),size=16)
-plt.yticks(size=16)
-cbar = ax.figure.colorbar(im)
-cbar.ax.tick_params(labelsize=16)
-cbar.set_label(r'$\overline{U}$ [m/s]',size=16)
-#cbar.set_label(r'$\overline{U}$ [m/s]',rotation=0,y=1.05,labelpad=-17,size=16)
+uline = plts.gethline(turb.magVel,20)
+Ruu = plts.gethline(turb.uu,20)
+#uline2 = plts.gethline(turb.magVel,5)
+
+# - Plot velocity magnitude comparing CFD and PIV with errors
+CFDu = [CFD_x*-1000,CFD_velMag]
+plts.plothLine(turb.magVel,20,r'$\overline{U}$ [m/s]',
+               err=uncMeanVel,CFD=CFDu,xcorr=-2.5)
+
+# - Plot Reynolds Stress uu CFD x PIV w errors
+CFDuu = [CFD_x*-1000,CFD_uu]
+plts.plothLine(turb.uu,20,r'Reynolds Stress $[m^2/s^2]$')
+#plt.figure(figsize=(6,6),dpi=150)
+#plt.plot(CFD_x*-1000,CFD_uu,'k',label='CFD')
+#plt.errorbar(velRaw.xcoord[0,:]-2,Ruu,yerr=hline,fmt='o',ecolor='k',c='k',
+#             ms=3,capsize=2,lw=1,label='PIV')
+#plt.legend()
+#plt.xlabel('Radius [mm]', size=16)
+#plt.ylabel(r'$\overline{U}$ [m/s]', size=16)
+#plt.xticks(size=16)
+#plt.yticks(size=16)
+#plt.title('$Y = 0.13 [m]$', size=18)
+
 plt.show()
-
 
 #******************************************************************************
 print('\nEND crcPIV\n')
