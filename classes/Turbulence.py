@@ -26,18 +26,23 @@ class Turb(ReadData):
     
     uu, vv, uv -> Reynolds Stress components
     '''
-    def __init__(self,fRes,u,v):
-        ReadData.__init__(self,fRes)
+    def __init__(self,resPath,u,v):
+        print('Initializing turbulence calculations')
+        ReadData.__init__(self,resPath)
         self.u = u
         self.v = v
         self.U = np.mean(self.u,axis=2, keepdims=True)
         self.V = np.mean(self.v,axis=2, keepdims=True)
+        self.magVel = np.sqrt(self.U**2 + self.V**2)
+        self.varU = np.mean(self.uL()**2,axis=2, keepdims=True)
+        self.varV = np.mean(self.vL()**2,axis=2, keepdims=True)
+        self.stdDevU = np.sqrt(self.varU)
+        self.stdDevV = np.sqrt(self.varV)
         
         self.calcReStress()
         self.calcVelGrad()
-        #self.calcSij()
-        print('scale x: ' + str(self.xscale))
-        print('scale y: ' + str(self.yscale))
+        print('Done')
+
         
     def uL(self):
         return self.u - self.U
@@ -104,20 +109,6 @@ class Turb(ReadData):
         magSij = np.sqrt(SijSij)
         return S11, S22, S12, magSij
     
-#    def calcSijSij(self):
-#        '''Calculate double dot product SijSij
-#        '''
-#        grad11, grad21, grad12, grad22 = self.calcVelGrad()
-#        SijSij = 2*(grad11)**2. + 2*(grad22)**2. + 2*(grad11*grad22) + 3./2*(grad12 + grad21)**2
-#        return SijSij
-#    
-#    def calcMagSij(self):
-#        '''calculate the magnitude of the Sij tensor - |Sij|
-#        '''
-#        SijSij = self.calcSijSij()
-#        magSij = np.sqrt(SijSij)
-#        return magSij
-    
     def calcTauijSmagorinsky(self):
         '''calculate the modeled tauij tensor - SGS tensor based on smagorinsky
         method
@@ -165,3 +156,24 @@ class Turb(ReadData):
         return epsilon
     
     # Calc uncertainties Mean Vel, Reynolds Stress components
+    
+    # - OLD NOT USED
+    
+        #self.calcSij()
+#        print('scale x: ' + str(self.xscale))
+#        print('scale y: ' + str(self.yscale))
+        
+        
+    #    def calcSijSij(self):
+#        '''Calculate double dot product SijSij
+#        '''
+#        grad11, grad21, grad12, grad22 = self.calcVelGrad()
+#        SijSij = 2*(grad11)**2. + 2*(grad22)**2. + 2*(grad11*grad22) + 3./2*(grad12 + grad21)**2
+#        return SijSij
+#    
+#    def calcMagSij(self):
+#        '''calculate the magnitude of the Sij tensor - |Sij|
+#        '''
+#        SijSij = self.calcSijSij()
+#        magSij = np.sqrt(SijSij)
+#        return magSij
