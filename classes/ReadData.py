@@ -20,9 +20,7 @@ class ReadData(SingleFrameData):
     resPath: Path of raw PIV files from Dantec\n
     '''
     def __init__(self,resPath):
-        SingleFrameData.__init__(self,resPath)
-        self.Ttot = len(self.files)
-        
+        SingleFrameData.__init__(self,resPath)        
 
     
     def readVar(self,varXname,varYname):
@@ -34,13 +32,12 @@ class ReadData(SingleFrameData):
         
         try:
             varX = np.load(self.resPath + '/' + varXnametratado + '.npy')
-            print('Reading PIV data of ' + varXname + ' in python format\n')
+            print('Reading PIV data of %s in python format\n' %varXname)
             varY = np.load(self.resPath + '/' + varYnametratado + '.npy')
             
         except:
             print('Reading PIV raw files for ' + varXname)
         
-            #varX,varY = self.readVarTimeSeries(varXname,varYname)
             varX,varY = self.readFrameVariable(0,varXname,varYname)
             
             print('Saving PIV data in python format')
@@ -53,11 +50,11 @@ class ReadData(SingleFrameData):
         
         varXnametratado = re.sub('\[.*\]','',varName).replace(" ","")
         
-        print('Reading variable: ' + str(varXnametratado))
+        print('Reading variable: %s' %varXnametratado)
         
         try:
             varX = np.load(self.resPath + '/' + varXnametratado + '.npy')
-            print('Reading PIV data of ' + varName + ' in python format\n')
+            print('Reading PIV data of %s in python format\n' %varName)
             
         except:
             print('Generating variable matrices')
@@ -91,11 +88,11 @@ class ReadData(SingleFrameData):
         varXnametratado = re.sub('\[.*\]','',varXname).replace(" ","")
         varYnametratado = re.sub('\[.*\]','',varYname).replace(" ","")
         
-        print('Reading variables: ' + str(varXnametratado) + ' & ' + str(varYnametratado))
+        print('Reading variables: %s & %s' %(varXnametratado,varYnametratado))
         
         try:
             varX = np.load(self.resPath + '/' + varXnametratado + '.npy')
-            print('Reading PIV data of ' + varXname + ' in python format\n')
+            print('Reading PIV data of %s in python format\n' %varXname)
             varY = np.load(self.resPath + '/' + varYnametratado + '.npy')
             
         except:
@@ -114,7 +111,8 @@ class ReadData(SingleFrameData):
                 else:
                     perc = time/float(self.Ttot)*100.
                     
-                varX[:,:,time],varY[:,:,time] = self.readFrameVariable(time,varXname,varYname)
+                varX[:,:,time],varY[:,:,time] = self.readFrameVariable(time,
+                    varXname,varYname)
                 
                 pbar.update(perc)
                 
@@ -131,12 +129,11 @@ class ReadData(SingleFrameData):
         
         varXnametratado = re.sub('\[.*\]','',varXname).replace(" ","")
         
-        print('Reading variables: ' + str(varXnametratado))
+        print('Reading variables: %s' %varXnametratado)
         
         try:
             varX = np.load(self.resPath + '/' + 'uncR' + '.npy')
-            #varX = np.load(self.resPath + '/' + varXnametratado + '.npy')
-            print('Reading PIV data of ' + varXname + ' in python format\n')
+            print('Reading PIV data of %s in python format\n' %varXname)
             
         except:
             print('Generating variable matrices')
@@ -170,14 +167,12 @@ class ReadData(SingleFrameData):
         varXnametratado = re.sub('\[.*\]','',varXname).replace(" ","")
         varYnametratado = re.sub('\[.*\]','',varYname).replace(" ","")
         
-        print('Reading variables: ' + str(varXnametratado) + ' & ' + str(varYnametratado))
+        print('Reading variables: %s & %s' %(varXnametratado,varYnametratado))
         
         try:
             varX = np.load(self.resPath + '/' + 'uncR' + '.npy')
-            #varX = np.load(self.resPath + '/' + varXnametratado + '.npy')
-            print('Reading PIV data of ' + varXname + ' in python format\n')
+            print('Reading PIV data of %s in python format\n' %varXname)
             varY = np.load(self.resPath + '/' + 'uncRpix' + '.npy')
-            #varY = np.load(self.resPath + '/' + varYnametratado + '.npy')
             
         except:
             print('Generating variable matrices')
@@ -195,7 +190,8 @@ class ReadData(SingleFrameData):
                 else:
                     perc = time/float(self.Ttot)*100.
                     
-                varX[:,:,time],varY[:,:,time] = self.readFrameVariable(time,varXname,varYname)
+                varX[:,:,time],varY[:,:,time] = self.readFrameVariable(time,
+                    varXname,varYname)
                 
                 pbar.update(perc)
                 
@@ -204,8 +200,6 @@ class ReadData(SingleFrameData):
             print('Saving PIV data in python format')
             np.save(self.resPath + '/' + 'uncR',varX)
             np.save(self.resPath + '/' + 'uncRpix',varY)
-            #np.save(self.resPath + '/' + varXnametratado,varX)
-            #np.save(self.resPath + '/' + varYnametratado,varY)
             print('Done saving')
         
         return varX,varY

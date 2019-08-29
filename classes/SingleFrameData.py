@@ -26,32 +26,51 @@ class SingleFrameData(object):
         print('Reading files from: ' + str(self.resPath))
         self.files = glob(resPath + '/*.dat')
         self.files.sort()
-        with open(self.files[0]) as f:
-            content = f.readlines()
-            # - get size of data as n pixels (lins,cols)
-            size = re.findall(r'I=(.*) J=(.*) ',content[2])
-            self.cols = int(size[0][0])
-            self.lins = int(size[0][1])
-            # - get variables available from file
-            self.variables = content[1].split('" "')
-            # - get single frame x and y coordinates
-            self.xcoord,self.ycoord = self.readFrameCoordinates(0)
-            
+        self.Ttot = len(self.files)
+
+        self.getInfos()
         self.calcCoordProps()
         
-    def readFrameCoordinates(self,time):
-        self.xcoordidx = self.variables.index("x (mm)[mm]")
-        self.ycoordidx = self.variables.index("y (mm)[mm]")
+    def getInfos(self):
+        '''Initialization function for initial infos from files
+        '''
+        with open(self.files[0]) as f:
+            content0 = f.readlines()
+            # - get size of data as n pixels (lins,cols)
+            size = re.findall(r'I=(.*) J=(.*) ',content0[2])
+            self.cols = int(size[0][0])
+            self.lins = int(size[0][1])
+            # - get timestamp on frame 0
+            t0 = re.findall(r'#(.*), (.*) s',content0[-1])
+            tN0 = int(t0[0][0])
+            tS0 = float(t0[0][1])
+            # - get variables available from file
+            self.variables = content0[1].split('" "')
+            # - get single frame x and y coordinates
+            self.xcoord,self.ycoord = self.readFrameVariable(0,"x (mm)[mm]","y (mm)[mm]")
+            
+        with open(self.files[-1]) as f:
+            content1 = f.readlines()
+            t1 = re.findall(r'#(.*), (.*) s',content1[-1])
+            tN1 = int(t1[0][0])
+            tS1 = float(t1[0][1])
         
-        usecols = (self.xcoordidx,self.ycoordidx)
-        
-        xt,yt = self._readFrame_(time,usecols)
-        
-        return xt, yt
+        # - timestamp number from dantec
+        self.timeNumber = np.linspace(tN0,tN1,num=self.Ttot)
+        # - aquisition frequency
+        self.freq = np.round(self.Ttot/(tS1-tS0))
+        # - timestep between measurements
+        self.dt = 1/self.freq
+        # - time stamps in secs with correction (Dantec truncate time info)
+        tS1c = tS0+self.Ttot*self.dt
+        self.timeStamp = np.linspace(tS0,tS1c,num=self.Ttot)
+
+        return 0
     
     def _readFrame_(self,time,usecols):
         '''Function to read each frame for coordinates or velocities
-        '''
+        '''            
+        # - Read data
         data_dantec = np.genfromtxt(self.files[time],skip_header=3,skip_footer=6,usecols=usecols)
         
         fxt = np.nan_to_num(np.flipud(data_dantec[:,0].reshape((self.lins,self.cols))))
@@ -99,14 +118,19 @@ class SingleFrameData(object):
         self.Ly = np.abs(self.ymin) + self.ymax
         return 0
     
-    def printCoordInfos(self):        
+    def printCoordTimeInfos(self):        
         #print('-------------')
         print('Bounding Box\n-------------')
-        print('X x Y: ' + str(self.cols) + ' x ' + str(self.lins) + ' vectors')
-        print('X coordinates: (' + str(self.xmin) + ', ' + str(self.xmax) + ') Lx: ' + str(self.Lx))
-        print('X Scale: ' + str(self.xscale) + ' m/pixel\n')
-        print('Y coordinates: (' + str(self.ymin) + ', ' + str(self.ymax) + ') Ly: ' + str(self.Ly))
-        print('Y Scale: ' + str(self.yscale) + ' m/pixel')
+        print('X x Y: %d x %d vectors' %(self.cols,self.lins))
+        print('X coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.xmin,self.xmax,self.Lx))
+        print('X Scale: %8.4e m/pixel\n' %self.xscale)
+        print('Y coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.ymin,self.ymax,self.Ly))
+        print('Y Scale: %8.4e m/pixel\n' %self.yscale)
+        print('Time Infos\n-------------')
+        print('Number of time steps: %d' %self.Ttot)
+        print('TimeStep: %8.4e s' %self.dt)
+        print('Aquisition Frequency: %5.1f Hz' %self.freq)
+        print('Initial x last timeStamp: %2.4f x %2.4f s' %(self.timeStamp[0],self.timeStamp[-1]))
         
         return 0
     
@@ -137,3 +161,13 @@ class SingleFrameData(object):
 #        Ut,Vt = self._readFrame_(time,usecolsUV)
 #        
 #        return xt,yt,Ut,Vt
+
+#    def readFrameCoordinates(self,time):
+#        self.xcoordidx = self.variables.index("x (mm)[mm]")
+#        self.ycoordidx = self.variables.index("y (mm)[mm]")
+#        
+#        usecols = (self.xcoordidx,self.ycoordidx)
+#        
+#        xt,yt = self._readFrame_(time,usecols)
+#        
+#        return xt, yt
