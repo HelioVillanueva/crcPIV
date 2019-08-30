@@ -144,30 +144,3 @@ class SingleFrameData(object):
         Lv = np.mean(self.Lx, self.Ly)
         Lr = (LIC/LCCD)*Lv
         return Lr
-
-
-## OLD NOT USED
-#    def readFrame(self,time):
-#        '''Method to read the coordinates and velocity fields for one 
-#        "time"step.
-#        Returns x,y,U,V arrays
-#        '''
-#        Uxidx = self.variables.index("U[m/s]")
-#        Uyidx = self.variables.index("V[m/s]")
-#        usecolsXY = (self.xcoordidx,self.ycoordidx)
-#        usecolsUV = (Uxidx,Uyidx)
-#        
-#        xt,yt = self._readFrame_(time,usecolsXY)
-#        Ut,Vt = self._readFrame_(time,usecolsUV)
-#        
-#        return xt,yt,Ut,Vt
-
-#    def readFrameCoordinates(self,time):
-#        self.xcoordidx = self.variables.index("x (mm)[mm]")
-#        self.ycoordidx = self.variables.index("y (mm)[mm]")
-#        
-#        usecols = (self.xcoordidx,self.ycoordidx)
-#        
-#        xt,yt = self._readFrame_(time,usecols)
-#        
-#        return xt, yt

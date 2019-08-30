@@ -156,24 +156,3 @@ class Turb(ReadData):
         return epsilon
     
     # Calc uncertainties Mean Vel, Reynolds Stress components
-    
-    # - OLD NOT USED
-    
-        #self.calcSij()
-#        print('scale x: ' + str(self.xscale))
-#        print('scale y: ' + str(self.yscale))
-        
-        
-    #    def calcSijSij(self):
-#        '''Calculate double dot product SijSij
-#        '''
-#        grad11, grad21, grad12, grad22 = self.calcVelGrad()
-#        SijSij = 2*(grad11)**2. + 2*(grad22)**2. + 2*(grad11*grad22) + 3./2*(grad12 + grad21)**2
-#        return SijSij
-#    
-#    def calcMagSij(self):
-#        '''calculate the magnitude of the Sij tensor - |Sij|
-#        '''
-#        SijSij = self.calcSijSij()
-#        magSij = np.sqrt(SijSij)
-#        return magSij
