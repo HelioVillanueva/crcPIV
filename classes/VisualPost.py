@@ -24,11 +24,13 @@ class Plots(ReadData):
         self.xlabel = 'Radius [mm]'
         self.ylabel = r'y [mm]'
         self.interpolation = 'bicubic'
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
         
         
     def singleFramePlot(self,data,dataName,t=0,grid='off'):
-        plt.rc('text', usetex=True)
-        plt.rc('font', family='serif')
+        '''method to plot data map
+        '''
         plt.figure(figsize=(5.5,6),dpi=150)
         ax = plt.gca()
         im = ax.imshow(data[:,:,t],cmap='jet',interpolation=self.interpolation,
@@ -60,10 +62,38 @@ class Plots(ReadData):
             yerr = 0
         
         plt.figure(figsize=(6,6),dpi=150)
-        if CFD!=0:
-            plt.plot(CFD[0],CFD[1],'k',label='CFD')
+        
         plt.errorbar(self.xcoord[0,:]+xcorr,dl,yerr=yerr,fmt='o',ecolor='k',c='k',
                      ms=3,capsize=2,lw=1,label='PIV')
+        if CFD!=0:
+            plt.plot(CFD[0],CFD[1],'k',label='CFD')
+            plt.legend()
+        plt.xlabel('Radius [mm]', size=16)
+        plt.ylabel(name, size=16)
+        plt.xticks(size=16)
+        plt.yticks(size=16)
+        plt.title('$Y = 0.13 [m]$', size=18)
+        return 0
+    
+    def plothLineMultiple(self,data,y,name,err=[],CFD=[],xcorr=0):
+        '''method to plot horizontal lines
+        CFD = [CFD_x*-1000,CFD_velMag]
+        '''
+        plt.figure(figsize=(6,6),dpi=150)
+        
+        for i,d in enumerate(data):
+            if CFD!=[]:
+                plt.plot(CFD[i][0],CFD[i][1],CFD[i][3],label=CFD[i][2],markersize=2)
+            
+            if err!=[]:
+                yerr = self.gethline(err[i][:,:,0],y)
+            else:
+                yerr = 0
+            
+            dl = self.gethline(d[0],y)
+            plt.errorbar(self.xcoord[0,:]+xcorr,dl,yerr=yerr,fmt=d[2],
+                         ecolor='k',c='k',ms=3,capsize=2,lw=1,label=d[1])
+            
         plt.legend()
         plt.xlabel('Radius [mm]', size=16)
         plt.ylabel(name, size=16)

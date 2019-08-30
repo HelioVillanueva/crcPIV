@@ -62,7 +62,7 @@ CFD = np.genfromtxt('/home/helio/Desktop/Res0/CFD/ParaView-RSM_BSL/y013.csv',
                     skip_header=1,delimiter=',')
 
 CFD_x, CFD_velMag, CFD_epsilon = CFD[:,14], CFD[:,0], CFD[:,4]
-CFD_uu, CFD_vv, CFD_uv = CFD[:,7], CFD[:,8], CFD[:,10]
+CFD_uu, CFD_vv, CFD_uv = CFD[:,8], CFD[:,7], CFD[:,10]
 
 
 #******************************************************************************
@@ -118,6 +118,8 @@ uncUMeanSq = np.mean(uncR**2,axis=2, keepdims=True)
 uncSigma = varMag + uncUMeanSq
 uncMeanVel = np.sqrt(uncSigma/velRaw.Ttot)
 uncRuu = turb.uu*np.sqrt(2/velRaw.Ttot)
+uncRvv = turb.vv*np.sqrt(2/velRaw.Ttot)
+uncRuv = turb.uv*np.sqrt(2/velRaw.Ttot)
 
 #******************************************************************************
 ## -- Save result in VTK format
@@ -152,33 +154,32 @@ uncRuu = turb.uu*np.sqrt(2/velRaw.Ttot)
 
 plts = Plots(velPath)
 plts.interpolation='bicubic'
-plts.singleFramePlot(uncMeanVel/turb.magVel,r'$\overline{U}$ [m/s]',t=0, grid='on')
+plts.xcoord = -plts.xcoord
 
-hline = plts.gethline(uncMeanVel[:,:,0], 20)
-#vline = plts.getvline(uncMeanVel[:,:,0], 0)
+plts.singleFramePlot(uncMeanVel/turb.magVel,r'$\overline{U}_{unc}/\overline{U}$ []',t=0, grid='on')
 
-uline = plts.gethline(turb.magVel,20)
-Ruu = plts.gethline(turb.uu,20)
-#uline2 = plts.gethline(turb.magVel,5)
 
 # - Plot velocity magnitude comparing CFD and PIV with errors
-CFDu = [CFD_x*-1000,CFD_velMag]
-plts.plothLine(turb.magVel,20,r'$\overline{U}$ [m/s]',
-               err=uncMeanVel,CFD=CFDu,xcorr=-2.5)
+CFDu = [-CFD_x*-1000,CFD_velMag]
+plts.plothLine(turb.magVel,25,r'$\overline{U}$ [m/s]',
+               err=uncMeanVel,CFD=CFDu,xcorr=+2.5)
 
 # - Plot Reynolds Stress uu CFD x PIV w errors
-CFDuu = [CFD_x*-1000,CFD_uu]
-plts.plothLine(turb.uu,20,r'Reynolds Stress $[m^2/s^2]$')
-#plt.figure(figsize=(6,6),dpi=150)
-#plt.plot(CFD_x*-1000,CFD_uu,'k',label='CFD')
-#plt.errorbar(velRaw.xcoord[0,:]-2,Ruu,yerr=hline,fmt='o',ecolor='k',c='k',
-#             ms=3,capsize=2,lw=1,label='PIV')
-#plt.legend()
-#plt.xlabel('Radius [mm]', size=16)
-#plt.ylabel(r'$\overline{U}$ [m/s]', size=16)
-#plt.xticks(size=16)
-#plt.yticks(size=16)
-#plt.title('$Y = 0.13 [m]$', size=18)
+data = [[turb.uu,r'PIV $|\, \tau_{uu}$','o'],
+        [turb.vv,r'PIV $|\, \tau_{vv}$','s'],
+        [turb.uv,r'PIV $|\, \tau_{uv}$','D']]
+
+CFDuu = [[-CFD_x*-1000,CFD_uu,r'CFD $|\, \tau_{uu}$','r'],
+         [-CFD_x*-1000,CFD_vv,r'CFD $|\, \tau_{vv}$','b'],
+         [-CFD_x*-1000,CFD_uv,r'CFD $|\, \tau_{uv}$','g']]
+
+errD = [uncRuu,
+        uncRvv,
+        uncRuv]
+
+plts.plothLineMultiple(data,25,r'Reynolds Stress $[m^2/s^2]$',
+               err=errD,CFD=CFDuu,xcorr=+2.5)
+
 
 plt.show()
 
