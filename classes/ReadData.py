@@ -16,7 +16,6 @@ from progressbar import ProgressBar
 class ReadData(SingleFrameData):
     '''
     Class to read all timesteps from Dantec Data\n
-    fRes list of raw PIV files from Dantec\n
     resPath: Path of raw PIV files from Dantec\n
     '''
     def __init__(self,resPath):
@@ -65,7 +64,7 @@ class ReadData(SingleFrameData):
             pbar.start()
             
             ## -- Loop over all files/times
-            for time,name in enumerate(self.fRes):
+            for time,name in enumerate(self.files):
                 if time==0:
                     perc = 0.
                 else:
@@ -105,7 +104,7 @@ class ReadData(SingleFrameData):
             pbar.start()
             
             ## -- Loop over all files/times
-            for time,name in enumerate(self.fRes):
+            for time,name in enumerate(self.files):
                 if time==0:
                     perc = 0.
                 else:
@@ -144,7 +143,7 @@ class ReadData(SingleFrameData):
             pbar.start()
             
             ## -- Loop over all files/times
-            for time,name in enumerate(self.fRes):
+            for time,name in enumerate(self.files):
                 if time==0:
                     perc = 0.
                 else:
@@ -184,7 +183,7 @@ class ReadData(SingleFrameData):
             pbar.start()
             
             ## -- Loop over all files/times
-            for time,name in enumerate(self.fRes):
+            for time,name in enumerate(self.files):
                 if time==0:
                     perc = 0.
                 else:
