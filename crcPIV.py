@@ -17,10 +17,10 @@ import numpy as np
 from classes.ReadData import ReadData
 from classes.Seeding import SiO2
 from classes.Turbulence import Turb
-from classes.VisualPost import Plots
+from classes.VisualPost import Plots, plt
 from classes.WriteVTK import WVTK
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from scipy import signal
 
 #******************************************************************************
@@ -106,7 +106,8 @@ turb = Turb(velPath,u,v)
 #K = turb.calcK2DPIV()
 
 #velVTKres = WVTK(velPath)
-#velVTKres.save2DcellReynoldsVTK(raw.resPath,'turb',epsilongrad,epsilonsmagorinsky,K)
+#velVTKres.save2DcellReynoldsVTK(raw.resPath,'turb',epsilongrad,
+#                                epsilonsmagorinsky,K)
 
 
 #******************************************************************************
@@ -138,10 +139,12 @@ uncRuv = turb.uv*np.sqrt(2/velRaw.Ttot)
 #rmsVTKres.save2DcellVecVTK(raw.resPath,'RMS',rmsUvtk,rmsVvtk)
 
 #ReTensorVTKres = WVTK(velPath)
-#ReTensorVTKres.save2DcellReynoldsVTK(raw.resPath,'ReStress',turb.uu,turb.vv,turb.uv)
+#ReTensorVTKres.save2DcellReynoldsVTK(raw.resPath,'ReStress',
+#                                     turb.uu,turb.vv,turb.uv)
 
 #ReTensorVTKres2 = WVTK(velPath)
-#ReTensorVTKres2.save2DcellReynoldsVTK(raw.resPath,'ReStressFilt',turb2.uu,turb2.vv,turb2.uv)
+#ReTensorVTKres2.save2DcellReynoldsVTK(raw.resPath,'ReStressFilt',
+#                                      turb2.uu,turb2.vv,turb2.uv)
 
 # - uncertainty
 #uncVTKres = WVTK(velPath)
@@ -156,13 +159,15 @@ plts = Plots(velPath)
 plts.interpolation='bicubic'
 plts.xcoord = -plts.xcoord
 
-plts.singleFramePlot(uncMeanVel/turb.magVel,r'$\overline{U}_{unc}/\overline{U}$ []',t=0, grid='on')
-
+plts.singleFramePlot(uncMeanVel/turb.magVel,
+                     r'$\overline{U}_{unc}/\overline{U}$ [ ]',
+                     t=0, grid='y', vlim=[0,1],tstamp='n')
+print(np.mean(uncMeanVel/turb.magVel))
 
 # - Plot velocity magnitude comparing CFD and PIV with errors
 CFDu = [-CFD_x*-1000,CFD_velMag]
-plts.plothLine(turb.magVel,25,r'$\overline{U}$ [m/s]',
-               err=uncMeanVel,CFD=CFDu,xcorr=+2.5)
+#plts.plothLine(turb.magVel,25,r'$\overline{U}$ [m/s]',
+#               err=uncMeanVel,CFD=CFDu,xcorr=+2.5)
 
 # - Plot Reynolds Stress uu CFD x PIV w errors
 data = [[turb.uu,r'PIV $|\, \tau_{uu}$','o'],
@@ -177,9 +182,8 @@ errD = [uncRuu,
         uncRvv,
         uncRuv]
 
-plts.plothLineMultiple(data,25,r'Reynolds Stress $[m^2/s^2]$',
-               err=errD,CFD=CFDuu,xcorr=+2.5)
-
+#plts.plothLineMultiple(data,25,r'Reynolds Stress $[m^2/s^2]$',
+#               err=errD,CFD=CFDuu,xcorr=+2.5)
 
 plt.show()
 

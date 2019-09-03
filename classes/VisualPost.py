@@ -20,7 +20,7 @@ class Plots(ReadData):
     '''
     def __init__(self,resPath):
         ReadData.__init__(self,resPath)
-        self.extent = [self.xmin,self.xmax,self.ymin,self.ymax]
+        self.extent = [-self.xmax,-self.xmin,self.ymin,self.ymax]
         self.xlabel = 'Radius [mm]'
         self.ylabel = r'y [mm]'
         self.interpolation = 'bicubic'
@@ -28,26 +28,38 @@ class Plots(ReadData):
         plt.rc('font', family='serif')
         
         
-    def singleFramePlot(self,data,dataName,t=0,grid='off'):
+    def singleFramePlot(self,data,dataName,t=0,grid='n',vlim=[],tstamp='n'):
         '''method to plot data map
         '''
+        if vlim!=[]:
+            vmin = vlim[0]
+            vmax = vlim[1]
+        else:
+            vmin = data[:,:,t].min()
+            vmax = data[:,:,t].max()
+            
         plt.figure(figsize=(5.5,6),dpi=150)
         ax = plt.gca()
-        im = ax.imshow(data[:,:,t],cmap='jet',interpolation=self.interpolation,
-                       extent=self.extent)
-        ax.set_title('Time: %8.3f s' %self.timeStamp[t], fontsize=16)
+        im = ax.imshow(np.fliplr(data[:,:,t]),cmap='jet',
+                       interpolation=self.interpolation,extent=self.extent,
+                       vmin=vmin,vmax=vmax)
+        if tstamp!='n':
+            ax.set_title('Time: %8.3f s' %self.timeStamp[t], fontsize=16)
+            
         plt.xlabel(self.xlabel, fontsize=16)
         plt.ylabel(self.ylabel, fontsize=16)
-        ax.set_xticks(np.arange(self.xmin,self.xmax), minor=True)
+        ax.set_xticks(np.arange(-self.xmax,-self.xmin), minor=True)
         ax.set_yticks(np.arange(self.ymin,self.ymax), minor=True)
         ax.tick_params(which='minor', bottom=False, left=False)
         plt.xticks(size=16)
         plt.yticks(size=16)
-        if grid!='off':
+        
+        if grid!='n':
             plt.grid(which='minor',color='k') 
+        
         cbar = ax.figure.colorbar(im)
         cbar.ax.tick_params(labelsize=16)
-        cbar.set_label(dataName,size=16) #,rotation=0,y=1.05,labelpad=-17
+        cbar.set_label(dataName,size=16,labelpad=15) #,rotation=0,y=1.05
         
         
     def plothLine(self,data,y,name,err=np.array([0]),CFD=0,xcorr=0):
@@ -63,16 +75,20 @@ class Plots(ReadData):
         
         plt.figure(figsize=(6,6),dpi=150)
         
-        plt.errorbar(self.xcoord[0,:]+xcorr,dl,yerr=yerr,fmt='o',ecolor='k',c='k',
-                     ms=3,capsize=2,lw=1,label='PIV')
+        plt.errorbar(self.xcoord[0,:]+xcorr,dl,yerr=yerr,fmt='o',
+                     ecolor='k',c='k',ms=3,capsize=2,lw=1,label='PIV')
+        
         if CFD!=0:
             plt.plot(CFD[0],CFD[1],'k',label='CFD')
             plt.legend()
+            
         plt.xlabel('Radius [mm]', size=16)
         plt.ylabel(name, size=16)
         plt.xticks(size=16)
         plt.yticks(size=16)
         plt.title('$Y = 0.13 [m]$', size=18)
+        plt.xlim(0,50)
+        plt.ylim(0,30)
         return 0
     
     def plothLineMultiple(self,data,y,name,err=[],CFD=[],xcorr=0):
@@ -83,7 +99,8 @@ class Plots(ReadData):
         
         for i,d in enumerate(data):
             if CFD!=[]:
-                plt.plot(CFD[i][0],CFD[i][1],CFD[i][3],label=CFD[i][2],markersize=2)
+                plt.plot(CFD[i][0],CFD[i][1],CFD[i][3],
+                         label=CFD[i][2],markersize=2)
             
             if err!=[]:
                 yerr = self.gethline(err[i][:,:,0],y)
@@ -100,6 +117,8 @@ class Plots(ReadData):
         plt.xticks(size=16)
         plt.yticks(size=16)
         plt.title('$Y = 0.13 [m]$', size=18)
+        plt.xlim(0,50)
+        plt.ylim(0,70)
         return 0
     
     def gethline(self,data,y):
