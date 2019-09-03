@@ -19,7 +19,8 @@ class ReadData(SingleFrameData):
     resPath: Path of raw PIV files from Dantec\n
     '''
     def __init__(self,resPath):
-        SingleFrameData.__init__(self,resPath)        
+        SingleFrameData.__init__(self,resPath)
+        print(self.variables)
 
     
     def readVar(self,varXname,varYname):
