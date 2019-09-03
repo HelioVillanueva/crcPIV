@@ -41,17 +41,20 @@ class SingleFrameData(object):
             self.cols = int(size[0][0])
             self.lins = int(size[0][1])
             # - get timestamp on frame 0
-            t0 = re.findall(r'#(.*), (.*) s',content0[-1])
+            t0 = re.findall(r'#(.*), (.*) ms',content0[-1])
             tN0 = int(t0[0][0])
             tS0 = float(t0[0][1])
             # - get variables available from file
             self.variables = content0[1].split('" "')
             # - get single frame x and y coordinates
-            self.xcoord,self.ycoord = self.readFrameVariable(0,"x (mm)[mm]","y (mm)[mm]")
+            self.xcoord = np.zeros((self.lins,self.cols,1))
+            self.ycoord = np.zeros((self.lins,self.cols,1))
+            self.xcoord[:,:,0],self.ycoord[:,:,0] = self.readFrameVariable(0,
+                       "x (mm)[mm]","y (mm)[mm]")
             
         with open(self.files[-1]) as f:
             content1 = f.readlines()
-            t1 = re.findall(r'#(.*), (.*) s',content1[-1])
+            t1 = re.findall(r'#(.*), (.*) ms',content1[-1])
             tN1 = int(t1[0][0])
             tS1 = float(t1[0][1])
         
@@ -71,10 +74,13 @@ class SingleFrameData(object):
         '''Function to read each frame for coordinates or velocities
         '''            
         # - Read data
-        data_dantec = np.genfromtxt(self.files[time],skip_header=3,skip_footer=6,usecols=usecols)
+        data_dantec = np.genfromtxt(self.files[time],skip_header=3,
+                                    skip_footer=6,usecols=usecols)
         
-        fxt = np.nan_to_num(np.flipud(data_dantec[:,0].reshape((self.lins,self.cols))))
-        fyt = np.nan_to_num(np.flipud(data_dantec[:,1].reshape((self.lins,self.cols))))
+        fxt = np.nan_to_num(np.flipud(data_dantec[:,0].reshape((self.lins,
+                                      self.cols))))
+        fyt = np.nan_to_num(np.flipud(data_dantec[:,1].reshape((self.lins,
+                                      self.cols))))
         
         return fxt,fyt
          
@@ -87,7 +93,12 @@ class SingleFrameData(object):
         
         usecols = (varxidx)
         
-        varXt, varYt = self._readFrame_(time,usecols)
+        # - Read data
+        data_dantec = np.genfromtxt(self.files[time],skip_header=3,
+                                    skip_footer=6,usecols=usecols)
+        
+        varXt = np.nan_to_num(np.flipud(data_dantec.reshape((self.lins,
+                                                             self.cols))))
         
         return varXt
     
@@ -122,15 +133,18 @@ class SingleFrameData(object):
         #print('-------------')
         print('Bounding Box\n-------------')
         print('X x Y: %d x %d vectors' %(self.cols,self.lins))
-        print('X coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.xmin,self.xmax,self.Lx))
+        print('X coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.xmin,
+              self.xmax,self.Lx))
         print('X Scale: %8.4e m/pixel\n' %self.xscale)
-        print('Y coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.ymin,self.ymax,self.Ly))
+        print('Y coordinates [mm]: (%4.3f, %4.3f) Lx: %4.3f [mm]' %(self.ymin,
+              self.ymax,self.Ly))
         print('Y Scale: %8.4e m/pixel\n' %self.yscale)
         print('Time Infos\n-------------')
         print('Number of time steps: %d' %self.Ttot)
         print('TimeStep: %8.4e s' %self.dt)
         print('Aquisition Frequency: %5.1f Hz' %self.freq)
-        print('Initial x last timeStamp: %2.4f x %2.4f s' %(self.timeStamp[0],self.timeStamp[-1]))
+        print('Initial x last timeStamp: %2.4f x %2.4f s' %(self.timeStamp[0],
+                                                            self.timeStamp[-1]))
         
         return 0
     
